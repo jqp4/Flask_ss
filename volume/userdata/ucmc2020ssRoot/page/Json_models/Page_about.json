@@ -1,5 +1,5 @@
 {
-	  "vertexAmount":-1,
-	  "criticalRoute":-1,
-	  "clpfWidth":-1
+    "vertexAmount":15,
+    "criticalRoute":30,
+    "clpfWidth":1
 }

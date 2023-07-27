@@ -22,9 +22,39 @@ from flask import send_from_directory
 from os import path
 
 
+@bluePrint.route("/")
+@bluePrint.route("/index")
+def index():
+    # Приветствие и инструкция
+    return render_template("index.html", title="Главная страница")
+
+
+@bluePrint.route("/favicon.ico")
+def favicon():
+    # https://stackoverflow.com/questions/48863061/favicon-ico-results-in-404-error-in-flask-app
+    
+    send_from_directory(
+        directory="/home/flask_skipod/app/static",
+        filename="favicon.ico",
+        mimetype="image/vnd.microsoft.icon",
+    )
+
+
+@bluePrint.before_request
+def before_request():
+    if current_user.is_authenticated:
+        current_user.last_seen = datetime.utcnow()
+        # Flask-login уже добавил пользователя при обращении к current_user
+        dataBase.session.add(current_user)
+        # поэтому эта строка необязательна
+        dataBase.session.commit()
+
+
 # Пути к ресурсным файлам юзверя
 @bluePrint.route("/user/<username>/<path:path>", methods=["GET"])
 def send_textures(username, path):
+    print(f">>> [GET] path = {path}")
+
     # Определяем, в какой папке лежат данные для нашего пользователя
     cur_user = User.query.filter_by(username=username).first_or_404()
     cur_folder = (
@@ -39,15 +69,16 @@ def send_textures(username, path):
     return send_from_directory(cur_folder, path)
 
 
-@bluePrint.route("/user/<username>/get_data", methods=["GET"])
-def render_static(username):
-    # Определяем, в какой папке лежат данные для нашего пользователя
-    cur_user = User.query.filter_by(username=username).first_or_404()
-    cur_dir = os.path.curdir
-    cur_dir = os.path.abspath(cur_dir)
-    cur_dir = os.path.realpath(cur_dir)
-    cur_folder = cur_dir + "/volume/userdata/" + cur_user.local_folder + "/page"
-    return send_from_directory(cur_folder, "page.html")
+# @bluePrint.route("/user/<username>/get_data", methods=["GET"])
+# def render_static(username):
+#     # Определяем, в какой папке лежат данные для нашего пользователя
+#     cur_user = User.query.filter_by(username=username).first_or_404()
+#     cur_dir = os.path.curdir
+#     cur_dir = os.path.abspath(cur_dir)
+#     cur_dir = os.path.realpath(cur_dir)
+#     cur_folder = cur_dir + "/volume/userdata/" + cur_user.local_folder + "/page"
+#     print("=======> ", cur_folder + "/page.html")
+#     return send_from_directory(cur_folder, "/page.html")
 
 
 @bluePrint.route("/user/<username>/home_page")
@@ -193,8 +224,11 @@ def upload_task():
             form.file_data.data.save(cur_abs_path + usr_tsk_path + "/" + graph_name)
             # Найдём xml-ник соответствующего юзверя и его папку для JSON-моделей
             graph_appgen_path = cur_abs_path + "/architect/architect"
-            graph_config_file = cur_abs_path + usr_tsk_path + "/" + graph_name
+            graph_config_file = (
+                cur_abs_path + usr_tsk_path + "/" + graph_name
+            )  # путь к xml конфигу
             graph_output_dirs = cur_abs_path + usr_pge_path + "/Json_models"
+
             # Нужно снести все старые данные юзверя
             try:
                 os.remove(os.path.join(graph_output_dirs, "Fl*"))
@@ -208,6 +242,7 @@ def upload_task():
                 os.remove(os.path.join(graph_output_dirs, "Page*"))
             except OSError:
                 pass
+
             # Запуск архитектора
             os_command = (
                 graph_appgen_path
@@ -219,6 +254,32 @@ def upload_task():
                 + graph_output_dirs
             )
             os.system(os_command)
+
+            # algoview 2.0
+
+            # новый архитектор
+            # graph_appgen_path_new_cpp = cur_abs_path + "/architect/main"
+            graph_appgen_path_new_py = cur_abs_path + "/architect/json2js.py"
+            cpp_output_file_path = cur_abs_path + "/app/main/output.json"
+
+            # архитектр сохраняет результат прямо около питоновского скрипта, поэтому дополнительно переносим файл
+            # os_command_new_cpp = graph_appgen_path_new_cpp + " " + graph_config_file
+
+            os_command_new_py = (
+                "python3 "
+                + graph_appgen_path_new_py
+                + " "
+                + cpp_output_file_path
+                + " "
+                + graph_output_dirs
+                + "/jsonGraphData.js"
+            )  # работает
+
+            # print(f"run {os_command_new_cpp}")
+            # os.system(os_command_new_cpp)
+
+            os.system(os_command_new_py)
+
         # Всё необходимое создано, возвращаемся на страницу пользователя
         return redirect(
             url_for(
@@ -250,7 +311,9 @@ def receive_task():
         bytes_data = os.read(fd, 16384)
         xml_code = bytes_data.decode("utf-8")
     # Настройка пути к визуализационной странице и рендер всего ресурса
-    frame_address = "/user/" + current_user.username + "/get_data"
+    # frame_address = "/user/" + current_user.username + "/get_data" // не работает ваще
+    frame_address = "/user/" + current_user.username + "/page_new.html"
+
     # frame_address = '/userdata/' + current_user.username + '/page'
     # print("ILNINLDVGODRO")
     # print(request.args.get('graph_name'))
@@ -261,20 +324,3 @@ def receive_task():
         source=frame_address,
         xml_code=xml_code,
     )
-
-
-@bluePrint.route("/")
-@bluePrint.route("/index")
-def index():
-    # Приветствие и инструкция
-    return render_template("index.html", title="Главная страница")
-
-
-@bluePrint.before_request
-def before_request():
-    if current_user.is_authenticated:
-        current_user.last_seen = datetime.utcnow()
-        # Flask-login уже добавил пользователя при обращении к current_user
-        dataBase.session.add(current_user)
-        # поэтому эта строка необязательна
-        dataBase.session.commit()
