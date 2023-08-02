@@ -252,44 +252,35 @@ def upload_task():
                 + graph_output_dirs
             )
             os.system(os_command)
-
-# <<<<<<< new_core
-#             # algoview 2.0
-
-#             # новый архитектор
-#             # graph_appgen_path_new_cpp = cur_abs_path + "/architect/main"
-#             graph_appgen_path_new_py = cur_abs_path + "/architect/json2js.py"
-#             cpp_output_file_path = cur_abs_path + "/app/main/output.json"
-
-#             # архитектр сохраняет результат прямо около питоновского скрипта, поэтому дополнительно переносим файл
-#             # os_command_new_cpp = graph_appgen_path_new_cpp + " " + graph_config_file
-
-#             os_command_new_py = (
-#                 "python3 "
-#                 + graph_appgen_path_new_py
-#                 + " "
-#                 + cpp_output_file_path
-#                 + " "
-#                 + graph_output_dirs
-#                 + "/jsonGraphData.js"
-#             )  # работает
-
-#             # print(f"run {os_command_new_cpp}")
-#             # os.system(os_command_new_cpp)
-
-#             os.system(os_command_new_py)
-
-#         # Всё необходимое создано, возвращаемся на страницу пользователя
-#         return redirect(
-#             url_for(
-#                 "main.user_page", username=current_user.username, graph_name=graph_name
-#             )
-#         )
-#     return render_template("upload_task.html", title="Загрузка задания", form=form)
-# =======
+#             
             # сохранение таска в бд
             current_user.task_file = form.file_data.data.filename
             dataBase.session.commit()
+            
+            # algoview 2.0
+
+            # новый архитектор
+            # graph_appgen_path_new_cpp = cur_abs_path + "/architect/main"
+            graph_appgen_path_new_py = cur_abs_path + "/architect/json2js.py"
+            cpp_output_file_path = cur_abs_path + "/app/main/output.json"
+
+            # архитектр сохраняет результат прямо около питоновского скрипта, поэтому дополнительно переносим файл
+            # os_command_new_cpp = graph_appgen_path_new_cpp + " " + graph_config_file
+
+            os_command_new_py = (
+                "python3 "
+                + graph_appgen_path_new_py
+                + " "
+                + cpp_output_file_path
+                + " "
+                + graph_output_dirs
+                + "/jsonGraphData.js"
+            )  # работает
+
+            # print(f"run {os_command_new_cpp}")
+            # os.system(os_command_new_cpp)
+
+            os.system(os_command_new_py)
 
         # Всё необходимое создано, возвращаемся на страницу пользователя
         user = User.query.filter_by(username=current_user.username).first_or_404()
