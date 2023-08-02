@@ -11,6 +11,8 @@ WORKDIR /home/flask_skipod
 #WORKDIR /home/new_user/Desktop/Flask_ss/venv/bin
 #!RUN pip install gunicorn
 
+# SHELL [ "/bin/bash", "-l", "-c" ]
+
 #!COPY requirements.txt requirements.txt
 #COPY --chown=flask_skipod:flask_skipod requirements.txt requirements.txt\
 #        app app \
@@ -70,12 +72,14 @@ RUN venv/bin/pip install gunicorn
 #!RUN chmod 777 config.py
 #!RUN chmod 777 boot.sh
 
+# RUN (cd architect_new && make && mv main ../architect)
+
 ENV FLASK_APP flask_skipod.py
-ENV BIND 0.0.0.0:5000
-ENV PORT 5000
+ENV BIND 0.0.0.0:3001
+ENV PORT 3001
 #RUN #chown -R flask_skipod:flask_skipod ./
 USER flask_skipod
 
-EXPOSE 5000
+EXPOSE 3001
 CMD ["run", "--host", "0.0.0.0"]
 ENTRYPOINT ["./boot.sh"]
