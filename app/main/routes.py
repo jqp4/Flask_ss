@@ -202,9 +202,7 @@ def upload_task():
         cur_abs_path = os.path.abspath(os.path.curdir)
         usr_tsk_path = "/volume/userdata/" + current_user.local_folder + "/task"
         usr_pge_path = "/volume/userdata/" + current_user.local_folder + "/page"
-        # Нужно создать локальную директорию для хранения данных по адресу, который выдан этому юзверю (если таковой есть)
-        if not os.path.exists(cur_abs_path + usr_tsk_path):
-            os.makedirs(cur_abs_path + usr_tsk_path, mode=0x777, exist_ok=True)
+
         # Нужно создать ещё и локальную директорию для отображения результатов
         if not os.path.exists(cur_abs_path + usr_pge_path):
             os.makedirs(
@@ -255,38 +253,49 @@ def upload_task():
             )
             os.system(os_command)
 
-            # algoview 2.0
+# <<<<<<< new_core
+#             # algoview 2.0
 
-            # новый архитектор
-            # graph_appgen_path_new_cpp = cur_abs_path + "/architect/main"
-            graph_appgen_path_new_py = cur_abs_path + "/architect/json2js.py"
-            cpp_output_file_path = cur_abs_path + "/app/main/output.json"
+#             # новый архитектор
+#             # graph_appgen_path_new_cpp = cur_abs_path + "/architect/main"
+#             graph_appgen_path_new_py = cur_abs_path + "/architect/json2js.py"
+#             cpp_output_file_path = cur_abs_path + "/app/main/output.json"
 
-            # архитектр сохраняет результат прямо около питоновского скрипта, поэтому дополнительно переносим файл
-            # os_command_new_cpp = graph_appgen_path_new_cpp + " " + graph_config_file
+#             # архитектр сохраняет результат прямо около питоновского скрипта, поэтому дополнительно переносим файл
+#             # os_command_new_cpp = graph_appgen_path_new_cpp + " " + graph_config_file
 
-            os_command_new_py = (
-                "python3 "
-                + graph_appgen_path_new_py
-                + " "
-                + cpp_output_file_path
-                + " "
-                + graph_output_dirs
-                + "/jsonGraphData.js"
-            )  # работает
+#             os_command_new_py = (
+#                 "python3 "
+#                 + graph_appgen_path_new_py
+#                 + " "
+#                 + cpp_output_file_path
+#                 + " "
+#                 + graph_output_dirs
+#                 + "/jsonGraphData.js"
+#             )  # работает
 
-            # print(f"run {os_command_new_cpp}")
-            # os.system(os_command_new_cpp)
+#             # print(f"run {os_command_new_cpp}")
+#             # os.system(os_command_new_cpp)
 
-            os.system(os_command_new_py)
+#             os.system(os_command_new_py)
+
+#         # Всё необходимое создано, возвращаемся на страницу пользователя
+#         return redirect(
+#             url_for(
+#                 "main.user_page", username=current_user.username, graph_name=graph_name
+#             )
+#         )
+#     return render_template("upload_task.html", title="Загрузка задания", form=form)
+# =======
+            # сохранение таска в бд
+            current_user.task_file = form.file_data.data.filename
+            dataBase.session.commit()
 
         # Всё необходимое создано, возвращаемся на страницу пользователя
-        return redirect(
-            url_for(
-                "main.user_page", username=current_user.username, graph_name=graph_name
-            )
-        )
-    return render_template("upload_task.html", title="Загрузка задания", form=form)
+        user = User.query.filter_by(username=current_user.username).first_or_404()
+        return render_template("user.html", title="Моя страница", user=user, graph_name=graph_name)
+    return render_template('upload_task.html', title='Загрузка задания', form=form)
+# >>>>>>> main
 
 
 @bluePrint.route("/receive_task", methods=["GET"])
@@ -304,10 +313,14 @@ def receive_task():
         bytes_data = os.read(fd, 16384)
         form.task_code.data = bytes_data.decode("utf-8")
         # Получаем xml-код пользователя
-        fd = os.open(
-            cur_abs_path + usr_tsk_path + "/" + request.args.get("graph_name"),
-            os.O_RDONLY,
-        )
+# <<<<<<< new_core
+#         fd = os.open(
+#             cur_abs_path + usr_tsk_path + "/" + request.args.get("graph_name"),
+#             os.O_RDONLY,
+#         )
+# =======
+        fd = os.open(cur_abs_path + usr_tsk_path + '/' + current_user.task_file, os.O_RDONLY)
+# >>>>>>> main
         bytes_data = os.read(fd, 16384)
         xml_code = bytes_data.decode("utf-8")
     # Настройка пути к визуализационной странице и рендер всего ресурса

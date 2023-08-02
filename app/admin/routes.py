@@ -399,20 +399,30 @@ def generate_users(form):
         # It works correctly but further investigation on what's going on required.
         # добавление пользователя в бд
         if form.give_var.data:
-            new_user = User(
-                username=usr_name,
-                local_folder=usr_name,
-                var_num=i % var_num,
-                var_file=form.vars_names.data + "/program_" + str(i % var_num) + ".c",
-                var_name=form.vars_names.data,
-            )
+# <<<<<<< new_core
+#             new_user = User(
+#                 username=usr_name,
+#                 local_folder=usr_name,
+#                 var_num=i % var_num,
+#                 var_file=form.vars_names.data + "/program_" + str(i % var_num) + ".c",
+#                 var_name=form.vars_names.data,
+#             )
+#         else:
+#             new_user = User(
+#                 username=usr_name,
+#                 local_folder=usr_name,
+#                 var_num=-1,
+#                 var_file="not_a_task.txt",
+#             )
+# =======
+            new_user = User(username=usr_name, local_folder=usr_name,
+                            var_num=i % var_num,
+                            var_file=form.vars_names.data + '/program_' + str(i % var_num) + '.c',
+                            var_name=form.vars_names.data, task_file='test_task.xml')
         else:
-            new_user = User(
-                username=usr_name,
-                local_folder=usr_name,
-                var_num=-1,
-                var_file="not_a_task.txt",
-            )
+            new_user = User(username=usr_name, local_folder=usr_name,
+                            var_num=-1, var_file='not_a_task.txt', task_file='test_task.xml')
+# >>>>>>> main
         new_user.set_password(txt_pass)
         dataBase.session.add(new_user)
         # create folders for new users
